@@ -1,57 +1,35 @@
-name: "Code Scanning"
-
+name: build
 on:
   push:
+    branches:
+      - main
   pull_request:
-  schedule:
-    - cron: '0 0 * * 1'
-  watch:
-    types: [started]
-
+  workflow_dispatch:  
 jobs:
-  Trivy-Scan:
-    runs-on: ubuntu-latest
-
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-#      - name: Build an image from Dockerfile
-#        run: |
-#          docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
-#
-#      - name: Run Trivy vulnerability scanner in docker mode
-#        uses: aquasecurity/trivy-action@master
-#        with:
-#          image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
-#          format: 'template'
-#          template: '@/contrib/sarif.tpl'
-#          output: 'trivy-results-docker.sarif'
-#          severity: 'CRITICAL'
-#
-#      - name: Upload Trivy scan results to GitHub Security tab
-#        uses: github/codeql-action/upload-sarif@v1
-#        with:
-#          sarif_file: 'trivy-results-docker.sarif'
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
 
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: anandg112/trivy-action@feat/add-skip-dirs-option
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
         with:
+          # format: 'sarif'
+          output: 'trivy-results.sarif'
           scan-type: 'fs'
-#          scan-ref: '.'
-          ignore-unfixed: true
+          # ignore-unfixed: true
           format: 'template'
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results-fs.sarif'
-          severity: 'CRITICAL'
+          # severity: 'CRITICAL'
           skip-dirs: "ignored-dir"
 
-#      - name: Upload Trivy scan results to GitHub Security tab
-#        uses: github/codeql-action/upload-sarif@v1
-#        with:
-#          sarif_file: 'trivy-results-fs.sarif'
-
-      - name: DEBUG Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'debug-trivy-results.sarif'
+          sarif_file: 'trivy-results.sarif'
