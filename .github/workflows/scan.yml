@@ -2,7 +2,7 @@ name: build
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
   workflow_dispatch:  
 jobs:
@@ -12,10 +12,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Build an image from Dockerfile
-        run: |
-          docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
